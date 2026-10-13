@@ -8,13 +8,15 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="wrap"><a href="index.html"><h1>🌊 부모님과 부산 3박4일</h1></a><p>일정 다시 짜기 · 수정 내용은 이 기기의 브라우저에 자동 저장돼요</p></div></header>
+<header><div class="wrap"><a href="index.html"><h1>🌊 부모님과 부산 3박4일</h1></a><p>일정 다시 짜기 · 수정하면 이 기기에 임시 저장되고, 💾 저장을 누르면 모두에게 반영돼요</p></div></header>
 <div class="wrap">
  <div class="bar">
   <div class="tools" style="margin:0">
    <a class="b pri" href="index.html">← 일정 보기</a>
    <button class="b" id="sort">⏱ 시간순 정렬</button>
    <button class="b" id="reset">↺ 원래대로</button>
+   <button class="b pri" id="push">💾 저장(공유)</button>
+   <button class="b" id="tok">🔑 토큰</button>
    <span class="saved" id="saved"></span>
   </div>
  </div>
@@ -38,14 +40,29 @@
  <h2 class="day">내가 등록한 장소</h2>
  <div id="mine"></div>
 </div>
-<footer>※ 저장은 이 브라우저(localStorage)에만 되며, 다른 기기와는 공유되지 않아요.</footer>
+<footer>※ 💾 저장(공유)은 GitHub 저장소의 data/*.json 파일을 덮어써요. 토큰은 이 브라우저에만 보관돼요.</footer>
 <script src="data.js"></script>
 <script src="common.js"></script>
 <script>
+READY.then(()=>{
 let plan=loadPlan();
 const byDay=()=>plan.sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0])); // 안정 정렬
-let tm;
-function save(){savePlan(plan);const s=$("#saved");s.textContent="✔ 저장됨";clearTimeout(tm);tm=setTimeout(()=>s.textContent="",1500);}
+function status(msg,ok){const s=$("#saved");s.textContent=msg;s.style.color=ok?"var(--green)":"#e8590c";}
+function mark(){status(isDirty()?"● 저장 안 됨 (💾 저장 누르기)":"✔ 저장됨",!isDirty());}
+function save(){savePlan(plan);mark();}
+function tokLabel(){$("#tok").textContent=getToken()?"🔑 토큰 설정됨":"🔑 토큰";}
+$("#tok").onclick=()=>{
+ const v=prompt("GitHub 토큰을 입력하세요.\n(이 저장소 하나에 Contents 쓰기 권한만 준 fine-grained 토큰 권장)\n비우고 확인하면 삭제돼요.",getToken());
+ if(v===null)return;
+ if(v.trim())lsSet(LS.tok,v.trim());else lsDel(LS.tok);
+ tokLabel();
+};
+$("#push").onclick=async()=>{
+ if(!isDirty()){status("변경 사항이 없어요.",true);return;}
+ $("#push").disabled=true;status("저장 중…",true);
+ const r=await pushAll();status(r.msg,r.ok);$("#push").disabled=false;
+};
+addEventListener("beforeunload",e=>{if(isDirty()){e.preventDefault();e.returnValue="";}});
 const opts=()=>'<option value="">＋ 명소/맛집에서 추가…</option><optgroup label="명소">'+SPOT.map((r,i)=>`<option value="spot:${i}">${esc(r[1])}</option>`).join("")+'</optgroup><optgroup label="맛집">'+FOOD.map((r,i)=>`<option value="food:${i}">${esc(r[1])}</option>`).join("")+'</optgroup>';
 function render(){
  byDay();
@@ -125,11 +142,12 @@ $("#addForm").onsubmit=e=>{
  e.target.reset();$("#f-day").value=d;syncForm();
 };
 function opts_refresh(){}
-render();renderMine();
+tokLabel();mark();render();renderMine();
 // 일정 화면의 "바꾸기"에서 넘어온 경우 해당 항목으로 이동
 (()=>{const m=location.hash.match(/edit=(\d+)/);if(!m)return;
  const el=document.querySelector(`.ed[data-i="${m[1]}"]`);if(!el)return;
  el.classList.add("hl");el.scrollIntoView({block:"center"});el.querySelector('input[data-f="2"]').focus({preventScroll:true});})();
+});
 </script>
 </body>
 </html>

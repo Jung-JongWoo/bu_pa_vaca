@@ -6,12 +6,60 @@ const GRAD=["#2bb3c0,#0b6fb8","#f6a35c,#e8590c","#7ad07a,#2f9e44","#b197fc,#6741
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const btns=q=>`<div class="btns"><a class="b map" target="_blank" rel="noopener" href="${mapUrl(q)}">📍 네이버지도</a><a class="b" target="_blank" rel="noopener" href="${imgUrl(q)}">🖼️ 이미지</a><a class="b" target="_blank" rel="noopener" href="${blogUrl(q)}">📝 후기</a></div>`;
-// 내가 추가한 명소/맛집 (localStorage) — 기본 목록 뒤에 붙여서 기존 번호는 그대로 유지
-const CKEY="bupa.custom.v1",BASE={spot:SPOT.length,food:FOOD.length};
-let CUSTOM={spot:[],food:[]};
-try{const c=JSON.parse(localStorage.getItem(CKEY));if(c&&Array.isArray(c.spot)&&Array.isArray(c.food))CUSTOM=c;}catch(e){}
-SPOT.push(...CUSTOM.spot);FOOD.push(...CUSTOM.food);
-function saveCustom(){try{localStorage.setItem(CKEY,JSON.stringify(CUSTOM));return true;}catch(e){return false;}}
+// ---- 데이터 저장소: data/*.json (GitHub 저장소 파일) ----
+// 읽기: 토큰이 있으면 GitHub API(항상 최신), 없으면 배포된 JSON. 쓰기: 토큰으로 해당 파일만 덮어쓰기.
+const REPO={owner:"Jung-JongWoo",repo:"bu_pa_vaca",branch:"main"};
+const FILES={plan:"data/plan.json",custom:"data/custom.json"};
+const LS={tok:"bupa.token",plan:"bupa.plan.v1",custom:"bupa.custom.v1",dirty:k=>"bupa.dirty."+k};
+const BASE={spot:SPOT.length,food:FOOD.length};
+let CUSTOM={spot:[],food:[]},PLAN_STATE=null;const SHA={};
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
+const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
+const getToken=()=>lsGet(LS.tok)||"";
+const b64d=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
+const b64e=s=>btoa(unescape(encodeURIComponent(s)));
+const apiUrl=k=>`https://api.github.com/repos/${REPO.owner}/${REPO.repo}/contents/${FILES[k]}`;
+async function readRemote(k){
+ const t=getToken();
+ if(t){try{
+  const r=await fetch(apiUrl(k)+"?ref="+REPO.branch+"&t="+Date.now(),{headers:{Authorization:"Bearer "+t,Accept:"application/vnd.github+json"},cache:"no-store"});
+  if(r.ok){const j=await r.json();SHA[k]=j.sha;return JSON.parse(b64d(j.content));}
+  if(r.status===404)SHA[k]=null;
+ }catch(e){}}
+ try{const r=await fetch(FILES[k]+"?v="+Date.now(),{cache:"no-store"});if(r.ok)return await r.json();}catch(e){}
+ return null;
+}
+// 저장 안 된 수정(draft)이 있으면 그것을, 없으면 원격 JSON을, 그것도 없으면 기본값을 사용
+const READY=(async()=>{
+ for(const k of ["plan","custom"]){
+  let v=null;
+  if(lsGet(LS.dirty(k))){try{v=JSON.parse(lsGet(LS[k]));}catch(e){}}
+  if(!v)v=await readRemote(k);
+  if(k==="plan")PLAN_STATE=Array.isArray(v)?v:PLAN.map(r=>r.slice());
+  else if(v&&Array.isArray(v.spot)&&Array.isArray(v.food))CUSTOM=v;
+ }
+ SPOT.push(...CUSTOM.spot);FOOD.push(...CUSTOM.food);
+})();
+function saveCustom(){lsSet(LS.custom,JSON.stringify(CUSTOM));return lsSet(LS.dirty("custom"),"1");}
+async function pushAll(){
+ const t=getToken();if(!t)return{ok:false,msg:"먼저 🔑 토큰을 입력하세요."};
+ const H={Authorization:"Bearer "+t,Accept:"application/vnd.github+json"};
+ for(const k of ["plan","custom"]){
+  if(!lsGet(LS.dirty(k)))continue;
+  try{
+   if(SHA[k]===undefined){const r=await fetch(apiUrl(k)+"?ref="+REPO.branch,{headers:H,cache:"no-store"});SHA[k]=r.ok?(await r.json()).sha:null;}
+   const body={message:"일정 수정: "+FILES[k],content:b64e(JSON.stringify(k==="plan"?PLAN_STATE:CUSTOM,null,1)),branch:REPO.branch};
+   if(SHA[k])body.sha=SHA[k];
+   const r=await fetch(apiUrl(k),{method:"PUT",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify(body)});
+   if(r.status===401||r.status===403||r.status===404)return{ok:false,msg:"토큰 권한 오류("+r.status+"). 이 저장소의 Contents 쓰기 권한을 확인하세요."};
+   if(r.status===409||r.status===422){SHA[k]=undefined;return{ok:false,msg:"다른 곳에서 먼저 바뀌었어요. 💾 저장을 다시 누르면 지금 내용으로 덮어써요."};}
+   if(!r.ok)return{ok:false,msg:"저장 실패("+r.status+")"};
+   SHA[k]=(await r.json()).content.sha;lsDel(LS.dirty(k));lsDel(LS[k]);
+  }catch(e){return{ok:false,msg:"네트워크 오류로 저장하지 못했어요."};}
+ }
+ return{ok:true,msg:"✔ 저장 완료! 다른 기기에는 1~2분 뒤 반영돼요."};
+}
 const LIST={spot:SPOT,food:FOOD};
 const detailUrl=(t,i)=>`detail.html?t=${t}&i=${i}`;
 
@@ -40,9 +88,9 @@ async function fetchInfo(wiki,commons){
 }
 const wikiOf=(t,r)=>t==="spot"?[r[6],r[7]]:[r[7],r[8]];
 
-// 내 일정 (localStorage). 형식은 PLAN과 동일: [요일,시간,일정,지역,메모,지도검색어,상세참조]
-const PKEY="bupa.plan.v1",DAYS=["월","화","수","목"];
-function loadPlan(){try{const a=JSON.parse(localStorage.getItem(PKEY));if(Array.isArray(a))return a;}catch(e){}return PLAN.map(r=>r.slice());}
-function savePlan(a){try{localStorage.setItem(PKEY,JSON.stringify(a));return true;}catch(e){return false;}}
-function isCustom(){try{return !!localStorage.getItem(PKEY);}catch(e){return false;}}
-function resetPlan(){try{localStorage.removeItem(PKEY);}catch(e){}}
+// 일정: [요일,시간,일정,지역,메모,지도검색어,상세참조] — READY 이후 사용
+const DAYS=["월","화","수","목"];
+const loadPlan=()=>PLAN_STATE;
+function savePlan(a){PLAN_STATE=a;lsSet(LS.plan,JSON.stringify(a));return lsSet(LS.dirty("plan"),"1");}
+const isDirty=()=>!!(lsGet(LS.dirty("plan"))||lsGet(LS.dirty("custom")));
+function resetPlan(){savePlan(PLAN.map(r=>r.slice()));}

@@ -40,7 +40,7 @@ function render(){
  let h="";
  if(st.t==="plan"){
   const plan=loadPlan().sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0]));let n=0;
-  if(isCustom())h+='<div class="note">✏️ 내가 수정한 일정을 보고 있어요. <a href="planner.html">계속 편집</a></div>';
+  if(isDirty())h+='<div class="note">✏️ 저장하지 않은 수정이 이 기기에 있어요. <a href="planner.html">편집·저장하기</a></div>';
   DAYS.filter(dayOk).forEach(d=>{
    const rows=plan.map((r,pi)=>({r,pi})).filter(x=>x.r[0]===d&&hit(x.r.slice(0,5)));
    if(!rows.length)return;
@@ -74,7 +74,7 @@ $("#days").innerHTML=["전체","월","화","수","목"].map(d=>`<button class="c
 $("#days").onclick=e=>{const d=e.target.dataset.d;if(d){st.day=d;render();}};
 $("#tabs").onclick=e=>{const t=e.target.dataset.t;if(t){st.t=t;render();}};
 $("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render();};
-render();
+READY.then(render);
 </script>
 </body>
 </html>

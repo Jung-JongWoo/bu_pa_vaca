@@ -13,6 +13,7 @@
 <script src="data.js"></script>
 <script src="common.js"></script>
 <script>
+READY.then(()=>{
 const p=new URLSearchParams(location.search),t=p.get("t")==="food"?"food":"spot",i=+p.get("i")||0;
 const L=LIST[t],r=L[i];
 if(!r){$("#out").innerHTML='<p class="empty">없는 항목입니다. <a href="index.html">목록으로</a></p>';}
@@ -45,6 +46,7 @@ else{
   if(info.text){$("#about").hidden=false;if(!spot)$("#ah").textContent="대표 메뉴 소개";$("#atext").textContent=info.text+(spot?"":"");$("#asrc").innerHTML=`출처: <a href="${info.url}" target="_blank" rel="noopener">${esc(info.src)}</a> (CC BY-SA)`;}
  });
 }
+});
 </script>
 </body>
 </html>
