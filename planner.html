@@ -16,6 +16,8 @@
    <button class="b" id="sort">⏱ 시간순 정렬</button>
    <button class="b" id="reset">↺ 원래대로</button>
    <button class="b pri" id="push">💾 저장(공유)</button>
+   <button class="b" id="exp">⬇ 내려받기</button>
+   <button class="b" id="imp">⬆ 불러오기</button>
    <button class="b" id="tok">🔑 토큰</button>
    <span class="saved" id="saved"></span>
   </div>
@@ -51,6 +53,7 @@ function status(msg,ok){const s=$("#saved");s.textContent=msg;s.style.color=ok?"
 function mark(){status(isDirty()?"● 저장 안 됨 (💾 저장 누르기)":"✔ 저장됨",!isDirty());}
 function save(){savePlan(plan);mark();}
 function tokLabel(){$("#tok").textContent=getToken()?"🔑 토큰 설정됨":"🔑 토큰";}
+$("#exp").onclick=exportData;$("#imp").onclick=pickAndImport;
 $("#tok").onclick=()=>{
  const v=prompt("GitHub 토큰을 입력하세요.\n(이 저장소 하나에 Contents 쓰기 권한만 준 fine-grained 토큰 권장)\n비우고 확인하면 삭제돼요.",getToken());
  if(v===null)return;

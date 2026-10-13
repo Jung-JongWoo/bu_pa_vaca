@@ -22,6 +22,7 @@
    <div class="chips" id="days"></div>
   </div>
  </div>
+ <div class="btns io" id="io"><button class="b" id="exp">⬇ 최종 일정 내려받기(JSON)</button><button class="b" id="imp">⬆ 일정 파일 불러오기</button></div>
  <main id="out"></main>
 </div>
 <footer>※ 영업시간·휴무는 방문 전 확인하세요. 사진·소개는 위키백과/위키미디어 커먼즈에서 불러옵니다.</footer>
@@ -34,6 +35,7 @@ const hit=a=>st.q===""||a.join(" ").toLowerCase().includes(st.q);
 const dayOk=d=>st.day==="전체"||st.day===d;
 
 function render(){
+ $("#io").hidden=st.t!=="plan";
  history.replaceState(null,"","#t="+st.t+"&d="+enc(st.day));
  [...$("#tabs").children].forEach(c=>c.classList.toggle("on",c.dataset.t===st.t));
  [...$("#days").children].forEach(c=>c.classList.toggle("on",c.dataset.d===st.day));
@@ -74,6 +76,7 @@ $("#days").innerHTML=["전체","월","화","수","목"].map(d=>`<button class="c
 $("#days").onclick=e=>{const d=e.target.dataset.d;if(d){st.day=d;render();}};
 $("#tabs").onclick=e=>{const t=e.target.dataset.t;if(t){st.t=t;render();}};
 $("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render();};
+$("#exp").onclick=exportData;$("#imp").onclick=pickAndImport;
 READY.then(render);
 </script>
 </body>

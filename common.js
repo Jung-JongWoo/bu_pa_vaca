@@ -94,3 +94,42 @@ const loadPlan=()=>PLAN_STATE;
 function savePlan(a){PLAN_STATE=a;lsSet(LS.plan,JSON.stringify(a));return lsSet(LS.dirty("plan"),"1");}
 const isDirty=()=>!!(lsGet(LS.dirty("plan"))||lsGet(LS.dirty("custom")));
 function resetPlan(){savePlan(PLAN.map(r=>r.slice()));}
+
+// ---- 최종 일정 내보내기/불러오기 (JSON 파일) ----
+function exportData(){
+ const d=new Date(),pad=n=>String(n).padStart(2,"0");
+ const data={app:"bu_pa_vaca",version:1,exportedAt:d.toISOString(),plan:PLAN_STATE,custom:CUSTOM};
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:"application/json"}));
+ a.download=`부산여행_일정_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+// 형식 검증 후 이 기기에 임시 저장(= 화면에 반영). 공유 저장은 planner의 💾 저장으로.
+async function importData(file){
+ let j;
+ try{j=JSON.parse(await file.text());}catch(e){return{ok:false,msg:"JSON 파일이 아니에요."};}
+ if(!j||j.app!=="bu_pa_vaca"||!Array.isArray(j.plan))return{ok:false,msg:"이 사이트에서 내보낸 일정 파일이 아니에요."};
+ const c=j.custom&&Array.isArray(j.custom.spot)&&Array.isArray(j.custom.food)?j.custom:{spot:[],food:[]};
+ const okSpot=c.spot.every(r=>Array.isArray(r)&&r.length>=8),okFood=c.food.every(r=>Array.isArray(r)&&r.length>=9);
+ if(!okSpot||!okFood)return{ok:false,msg:"내 명소/맛집 데이터 형식이 올바르지 않아요."};
+ const n={spot:BASE.spot+c.spot.length,food:BASE.food+c.food.length};
+ const plan=[];
+ for(const r of j.plan){
+  if(!Array.isArray(r)||!DAYS.includes(r[0]))return{ok:false,msg:"일정 데이터 형식이 올바르지 않아요."};
+  const x=[0,1,2,3,4,5,6].map(k=>typeof r[k]==="string"?r[k]:"");
+  const m=x[6].match(/^(spot|food):(\d+)$/);
+  if(x[6]&&(!m||+m[2]>=n[m[1]]))x[6]="";
+  plan.push(x);
+ }
+ savePlan(plan);CUSTOM=c;saveCustom();
+ return{ok:true,msg:`일정 ${plan.length}개, 내 장소 ${c.spot.length+c.food.length}개를 불러왔어요.`};
+}
+function pickAndImport(){
+ const i=document.createElement("input");i.type="file";i.accept=".json,application/json";
+ i.onchange=async()=>{
+  const f=i.files[0];if(!f)return;
+  if(!confirm("지금 일정을 불러온 파일 내용으로 바꿀까요?"))return;
+  const r=await importData(f);alert(r.msg);if(r.ok)location.reload();
+ };
+ i.click();
+}
