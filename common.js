@@ -133,3 +133,16 @@ function pickAndImport(){
  };
  i.click();
 }
+
+// .env 파일(GITHUB_TOKEN=...)에서 토큰을 읽어 이 브라우저에만 저장
+async function tokenFromEnvFile(file){
+ const m=(await file.text()).match(/^\s*(?:export\s+)?GITHUB_TOKEN\s*=\s*(.+?)\s*$/m);
+ const v=m&&m[1].replace(/^["']|["']$/g,"").trim();
+ if(!v||/여기에_붙여넣기/.test(v))return{ok:false,msg:"파일에서 GITHUB_TOKEN 값을 찾지 못했어요."};
+ lsSet(LS.tok,v);return{ok:true,msg:"토큰을 불러왔어요."};
+}
+function pickEnvFile(done){
+ const i=document.createElement("input");i.type="file";
+ i.onchange=async()=>{const f=i.files[0];if(!f)return;const r=await tokenFromEnvFile(f);alert(r.msg);done&&done(r);};
+ i.click();
+}
