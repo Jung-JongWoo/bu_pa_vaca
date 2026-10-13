@@ -126,6 +126,10 @@ $("#addForm").onsubmit=e=>{
 };
 function opts_refresh(){}
 render();renderMine();
+// 일정 화면의 "바꾸기"에서 넘어온 경우 해당 항목으로 이동
+(()=>{const m=location.hash.match(/edit=(\d+)/);if(!m)return;
+ const el=document.querySelector(`.ed[data-i="${m[1]}"]`);if(!el)return;
+ el.classList.add("hl");el.scrollIntoView({block:"center"});el.querySelector('input[data-f="2"]').focus({preventScroll:true});})();
 </script>
 </body>
 </html>

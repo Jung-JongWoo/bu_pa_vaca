@@ -39,17 +39,17 @@ function render(){
  [...$("#days").children].forEach(c=>c.classList.toggle("on",c.dataset.d===st.day));
  let h="";
  if(st.t==="plan"){
-  const plan=loadPlan();let n=0;
+  const plan=loadPlan().sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0]));let n=0;
   if(isCustom())h+='<div class="note">✏️ 내가 수정한 일정을 보고 있어요. <a href="planner.html">계속 편집</a></div>';
   DAYS.filter(dayOk).forEach(d=>{
-   const rows=plan.filter(r=>r[0]===d&&hit(r.slice(0,5)));
+   const rows=plan.map((r,pi)=>({r,pi})).filter(x=>x.r[0]===d&&hit(x.r.slice(0,5)));
    if(!rows.length)return;
    h+=`<h2 class="day">${D[d]}</h2>`;
-   rows.forEach(r=>{
+   rows.forEach(({r,pi})=>{
     n++;
     let more="";
     if(r[6]){const[t,i]=r[6].split(":");more=`<a class="b pri" href="${detailUrl(t,i)}">상세 보기 →</a>`;}
-    h+=`<div class="row"><div class="time">${esc(r[1])}</div><div class="main">${r[3]?`<span class="tag">${esc(r[3])}</span>`:""}<b>${esc(r[2])}</b>${r[4]?`<div class="memo">${esc(r[4])}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div></div>`;
+    h+=`<div class="row"><div class="time">${esc(r[1])}</div><div class="main">${r[3]?`<span class="tag">${esc(r[3])}</span>`:""}<b>${esc(r[2])}</b>${r[4]?`<div class="memo">${esc(r[4])}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div><a class="b edit-link" href="planner.html#edit=${pi}" aria-label="이 일정 바꾸기">✏️ 바꾸기</a></div>`;
    });
   });
   $("#out").innerHTML=n?h:'<div class="empty">검색 결과가 없습니다.</div>';
