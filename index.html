@@ -4,51 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>부산 부모님 여행 3박4일</title>
-<style>
-:root{--bg:#f4f7fb;--card:#fff;--tx:#1d2733;--sub:#667587;--pri:#0b6fb8;--pri2:#e6f2fb;--bd:#e1e8f0;--green:#03c75a}
-@media(prefers-color-scheme:dark){:root{--bg:#10171f;--card:#19232e;--tx:#e8eef5;--sub:#9aabbd;--pri:#5bb2f0;--pri2:#1c3446;--bd:#2a3846}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;line-height:1.5}
-header{background:linear-gradient(135deg,#0b6fb8,#2bb3c0);color:#fff;padding:24px 16px 16px}
-header h1{margin:0;font-size:1.4rem}header p{margin:4px 0 0;opacity:.9;font-size:.9rem}
-.wrap{max-width:960px;margin:0 auto;padding:0 16px}
-.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0 8px;border-bottom:1px solid var(--bd)}
-.tabs{display:flex;gap:6px}
-.tab{flex:1;padding:10px;border:0;border-radius:10px;background:var(--card);color:var(--tx);font-size:1rem;cursor:pointer;border:1px solid var(--bd)}
-.tab.on{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:700}
-.tools{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-input[type=search]{flex:1;min-width:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:1rem}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
-.chip.on{background:var(--pri2);border-color:var(--pri);color:var(--pri);font-weight:700}
-h2.day{margin:22px 0 8px;font-size:1.1rem;color:var(--pri)}
-.row{display:flex;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px;align-items:flex-start;flex-wrap:wrap}
-.time{font-weight:700;min-width:52px;color:var(--pri)}
-.main{flex:1;min-width:200px}
-.tag{display:inline-block;font-size:.75rem;background:var(--pri2);color:var(--pri);padding:1px 8px;border-radius:99px;margin-right:6px}
-.memo{color:var(--sub);font-size:.88rem;margin-top:2px}
-.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-a.b{font-size:.82rem;padding:5px 10px;border-radius:8px;text-decoration:none;border:1px solid var(--bd);color:var(--tx);background:var(--card)}
-a.b.map{background:var(--green);border-color:var(--green);color:#fff}
-a.b:hover{filter:brightness(.95)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:hidden}
-.thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;background-size:cover;background-position:center}
-.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.thumb .d{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);color:#fff;font-size:.75rem;padding:2px 9px;border-radius:99px}
-.cb{padding:12px}.cb h3{margin:0 0 4px;font-size:1.05rem}
-.score{float:right;font-weight:700;color:#e8920c}
-.empty{text-align:center;color:var(--sub);padding:40px 0}
-footer{color:var(--sub);font-size:.8rem;text-align:center;padding:28px 16px}
-.hide{display:none}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header><div class="wrap"><h1>🌊 부모님과 부산 3박4일</h1><p>월 14:00 ~ 목 14:00 · 평지 위주, 앉아서 감상하는 코스</p></div></header>
 <div class="wrap">
  <div class="bar">
   <div class="tabs" id="tabs">
-   <button class="tab on" data-t="plan">📅 전체 일정</button>
+   <button class="tab" data-t="plan">📅 전체 일정</button>
    <button class="tab" data-t="spot">🏞️ 명소</button>
    <button class="tab" data-t="food">🍲 맛집</button>
   </div>
@@ -59,93 +22,50 @@ footer{color:var(--sub);font-size:.8rem;text-align:center;padding:28px 16px}
  </div>
  <main id="out"></main>
 </div>
-<footer>※ 영업시간·휴무는 방문 전 확인하세요. 지도·이미지는 네이버로 연결됩니다.</footer>
+<footer>※ 영업시간·휴무는 방문 전 확인하세요. 사진·소개는 위키백과/위키미디어 커먼즈에서 불러옵니다.</footer>
+<script src="data.js"></script>
+<script src="common.js"></script>
 <script>
-const D={월:"월요일",화:"화요일",수:"수요일",목:"목요일"};
-// [요일,시간,일정,지역,메모,지도검색어]
-const PLAN=[
-["월","14:00","체크인, 짐 풀기","숙소","","해운대 숙소"],
-["월","15:00","해운대 해수욕장 산책 → 동백섬 한 바퀴","해운대","평지 위주","해운대해수욕장"],
-["월","17:30","숙소 휴식","숙소","",""],
-["월","18:30","저녁: 금수복국 해운대본점","해운대","맑은 복국, 주차 가능","금수복국 해운대본점"],
-["월","20:00","더베이101 야경","마린시티","저녁 바람 차니 겉옷","더베이101"],
-["화","09:30","해동용궁사","기장","계단 있음, 오전이 한산","해동용궁사"],
-["화","12:00","점심: 풍원장 한상 또는 장씨해녀집 전복죽","기장","풍원장 점심 예약 권장","풍원장 시골밥상"],
-["화","14:00","송정 → 해변열차 → 청사포 다릿돌전망대","해운대·송정","앉아서 바다 감상","청사포 다릿돌전망대"],
-["화","16:30","카페 휴식","청사포","","청사포 카페"],
-["화","18:30","저녁 후 광안리 해변 산책, 광안대교 야경","광안리","평일이라 한산","광안리해수욕장"],
-["수","09:30","태종대 다누비열차","영도","약 2시간","태종대 다누비열차"],
-["수","12:30","점심: 남포동 대가돼지국밥","남포동","","남포동 대가돼지국밥"],
-["수","13:30","자갈치·국제시장 구경","남포동","인파 주의","자갈치시장"],
-["수","15:30","송도 구름산책로","송도","평지 해상 데크, 무료","송도 구름산책로"],
-["수","17:30","숙소 복귀, 근처에서 편하게 저녁","숙소","",""],
-["목","09:00","체크아웃 후 범어사","금정구","단풍 10월 말~11월 절정","범어사"],
-["목","11:00","동래 온천장 족욕","동래","","동래온천 족욕체험장"],
-["목","11:30","점심: 배종관 동래삼계탕","동래","11:20 오픈, 수~일 영업","배종관 동래삼계탕"],
-["목","13:00","출발 준비","동래","공항·부산역까지 30~40분",""],
-["목","14:00","여행 종료","","",""]];
-// [요일,이름,추천도,메모,이모지]
-const SPOT=[
-["월","해운대 해수욕장",9,"평지 백사장 산책","🏖️"],
-["월","해운대 해변열차",9.5,"미포~송정, 앉아서 감상","🚃"],
-["월","동백섬 산책로",9,"평지 30분","🌲"],
-["월","더베이101 야경",8.5,"앉아서 감상","🌃"],
-["화","해동용궁사",8.5,"계단 있음","⛩️"],
-["화","광안리 해변·대교 야경",8.5,"평일 한산","🌉"],
-["화","청사포 다릿돌전망대",8,"해변열차로 연결","🔭"],
-["수","태종대 다누비열차",9,"걷기 적음","🚂"],
-["수","송도 구름산책로",8.5,"평지 데크","☁️"],
-["수","자갈치·국제시장",8,"회·씨앗호떡","🐟"],
-["수","감천문화마을",7,"경사 많음, 선택","🎨"],
-["목","범어사",8.5,"단풍","🍁"],
-["목","동래 온천 족욕",9,"마무리 휴식","♨️"]];
-// [요일,이름,메뉴,지역,메모,이모지]
-const FOOD=[
-["월","금수복국 해운대본점","복국","해운대","24시간, 주차·발레 가능","🍲"],
-["월","초원복국 해운대점","복국","해운대","대기 길 때 대안, 예약 가능","🍲"],
-["화","풍원장 시골밥상","한정식","기장","점심 예약 권장","🍱"],
-["화","장씨해녀집","전복죽·해산물","기장 연화리","해녀 직영","🦪"],
-["수","남포동 대가돼지국밥","돼지국밥","남포동","","🐖"],
-["목","배종관 동래삼계탕","삼계탕","동래","수~일 영업, 대기 가능","🐔"],
-["목","해월","언양불고기","동래","조용한 분위기","🥩"]];
-
-const enc=encodeURIComponent;
-const mapUrl=q=>"https://map.naver.com/p/search/"+enc(q);
-const imgUrl=q=>"https://search.naver.com/search.naver?where=image&query="+enc(q);
-const blogUrl=q=>"https://search.naver.com/search.naver?where=blog&query="+enc(q+" 후기");
-const GRAD=["#2bb3c0,#0b6fb8","#f6a35c,#e8590c","#7ad07a,#2f9e44","#b197fc,#6741d9","#ff8787,#e03131"];
-const st={t:"plan",day:"전체",q:""};
-const $=s=>document.querySelector(s);
-const btns=(q,kw)=>`<div class="btns"><a class="b map" target="_blank" rel="noopener" href="${mapUrl(q)}">📍 네이버지도</a><a class="b" target="_blank" rel="noopener" href="${imgUrl(q)}">🖼️ 이미지</a><a class="b" target="_blank" rel="noopener" href="${blogUrl(q)}">📝 후기</a></div>`;
+const h0=new URLSearchParams(location.hash.slice(1));
+const st={t:h0.get("t")||"plan",day:h0.get("d")||"전체",q:""};
 const hit=a=>st.q===""||a.join(" ").toLowerCase().includes(st.q);
 const dayOk=d=>st.day==="전체"||st.day===d;
 
 function render(){
+ history.replaceState(null,"","#t="+st.t+"&d="+enc(st.day));
+ [...$("#tabs").children].forEach(c=>c.classList.toggle("on",c.dataset.t===st.t));
+ [...$("#days").children].forEach(c=>c.classList.toggle("on",c.dataset.d===st.day));
  let h="";
  if(st.t==="plan"){
   let last="",n=0;
   PLAN.filter(r=>dayOk(r[0])&&hit(r.slice(0,5))).forEach(r=>{
    n++;
    if(r[0]!==last){h+=`<h2 class="day">${D[r[0]]}</h2>`;last=r[0];}
-   h+=`<div class="row"><div class="time">${r[1]}</div><div class="main">${r[3]?`<span class="tag">${r[3]}</span>`:""}<b>${r[2]}</b>${r[4]?`<div class="memo">${r[4]}</div>`:""}${r[5]?btns(r[5]):""}</div></div>`;
+   let more="";
+   if(r[6]){const[t,i]=r[6].split(":");more=`<a class="b pri" href="${detailUrl(t,i)}">상세 보기 →</a>`;}
+   h+=`<div class="row"><div class="time">${r[1]}</div><div class="main">${r[3]?`<span class="tag">${r[3]}</span>`:""}<b>${r[2]}</b>${r[4]?`<div class="memo">${r[4]}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div></div>`;
   });
-  if(!n)h='<div class="empty">검색 결과가 없습니다.</div>';
- }else{
-  const L=st.t==="spot"?SPOT:FOOD;
-  const f=L.filter(r=>dayOk(r[0])&&hit(r.slice(0,5)));
-  h=f.length?'<div class="grid">'+f.map((r,i)=>{
-   const spot=st.t==="spot";
-   const name=r[1],emo=spot?r[4]:r[5],q=name.replace("·"," ");
-   const sub=spot?`<span class="score">⭐ ${r[2]}</span>`:`<span class="score" style="font-size:.85rem;color:var(--sub)">${r[2]}</span>`;
-   const memo=spot?r[3]:[r[3],r[4]].filter(Boolean).join(" · ");
-   return `<div class="card"><div class="thumb" style="background-image:linear-gradient(135deg,${GRAD[i%GRAD.length]})"><span>${emo}</span><span class="d">${D[r[0]]}</span></div><div class="cb"><h3>${name}${sub}</h3><div class="memo">${memo}</div>${btns(spot?q:"부산 "+q)}</div></div>`;
-  }).join("")+"</div>":'<div class="empty">검색 결과가 없습니다.</div>';
+  $("#out").innerHTML=n?h:'<div class="empty">검색 결과가 없습니다.</div>';
+  return;
  }
- $("#out").innerHTML=h;
+ const spot=st.t==="spot";
+ const f=LIST[st.t].map((r,i)=>({r,i})).filter(({r})=>dayOk(r[0])&&hit(r.slice(0,5)));
+ $("#out").innerHTML=f.length?'<div class="grid">'+f.map(({r,i},k)=>{
+  const emo=spot?r[4]:r[5];
+  const sub=spot?`<span class="score">⭐ ${r[2]}</span>`:`<span class="score" style="font-size:.85rem;color:var(--sub)">${esc(r[2])}</span>`;
+  const memo=spot?r[3]:[r[3],r[4]].filter(Boolean).join(" · ");
+  return `<div class="card"><a class="go" href="${detailUrl(st.t,i)}"><div class="thumb" data-i="${i}" style="background-image:linear-gradient(135deg,${GRAD[k%GRAD.length]})"><span>${emo}</span><span class="d">${D[r[0]]}</span></div><div class="cb"><h3>${esc(r[1])}${sub}</h3><div class="memo">${esc(memo)}</div></div></a>${btns(spot?r[5]:"부산 "+r[6])}</div>`;
+ }).join("")+"</div>":'<div class="empty">검색 결과가 없습니다.</div>';
+ // 사진 비동기 로딩
+ document.querySelectorAll(".thumb").forEach(async el=>{
+  const r=LIST[st.t][el.dataset.i],[w,c]=wikiOf(st.t,r);
+  const info=await fetchInfo(w,c);
+  if(info&&el.isConnected){const im=new Image();im.alt=r[1];im.loading="lazy";im.referrerPolicy="no-referrer";im.onload=()=>{el.querySelector("span").style.display="none";el.prepend(im);};im.src=info.img;}
+ });
 }
-$("#days").innerHTML=["전체","월","화","수","목"].map(d=>`<button class="chip${d==="전체"?" on":""}" data-d="${d}">${d}</button>`).join("");
-$("#days").onclick=e=>{const d=e.target.dataset.d;if(!d)return;st.day=d;[...$("#days").children].forEach(c=>c.classList.toggle("on",c.dataset.d===d));render();};
-$("#tabs").onclick=e=>{const t=e.target.dataset.t;if(!t)return;st.t=t;[...$("#tabs").children].forEach(c=>c.classList.toggle("on",c.dataset.t===t));render();};
+$("#days").innerHTML=["전체","월","화","수","목"].map(d=>`<button class="chip" data-d="${d}">${d}</button>`).join("");
+$("#days").onclick=e=>{const d=e.target.dataset.d;if(d){st.day=d;render();}};
+$("#tabs").onclick=e=>{const t=e.target.dataset.t;if(t){st.t=t;render();}};
 $("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render();};
 render();
 </script>

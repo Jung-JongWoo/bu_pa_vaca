@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>상세 · 부산 부모님 여행</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap"><a href="index.html"><h1>🌊 부모님과 부산 3박4일</h1></a></div></header>
+<div class="wrap" id="out"></div>
+<footer>※ 영업시간·휴무는 방문 전 확인하세요.</footer>
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>
+const p=new URLSearchParams(location.search),t=p.get("t")==="food"?"food":"spot",i=+p.get("i")||0;
+const L=LIST[t],r=L[i];
+if(!r){$("#out").innerHTML='<p class="empty">없는 항목입니다. <a href="index.html">목록으로</a></p>';}
+else{
+ const spot=t==="spot",emo=spot?r[4]:r[5],[w,c]=wikiOf(t,r),q=spot?r[5]:"부산 "+r[6];
+ document.title=r[1]+" · 부산 부모님 여행";
+ const same=PLAN.filter(x=>x[0]===r[0]);
+ const sameList=same.map(x=>`<div class="memo">${x[1]} · ${esc(x[2])}</div>`).join("");
+ const others=L.map((x,k)=>({x,k})).filter(({x,k})=>x[0]===r[0]&&k!==i).map(({x,k})=>`<a class="b" href="${detailUrl(t,k)}">${esc(x[1])}</a>`).join(" ");
+ const prev=i>0?`<a class="b" href="${detailUrl(t,i-1)}">← ${esc(L[i-1][1])}</a>`:"<span></span>";
+ const next=i<L.length-1?`<a class="b" href="${detailUrl(t,i+1)}">${esc(L[i+1][1])} →</a>`:"<span></span>";
+ $("#out").innerHTML=`
+ <a class="back" href="index.html#t=${t}">← ${spot?"명소":"맛집"} 목록</a>
+ <div class="hero" id="hero" style="background-image:linear-gradient(135deg,${GRAD[i%GRAD.length]})"><span>${emo}</span></div>
+ <div class="credit" id="credit"></div>
+ <div class="panel"><h1 style="margin:0 0 4px;font-size:1.4rem">${esc(r[1])}</h1>
+  <div class="kv"><span class="tag">${D[r[0]]}</span>${spot?`<span class="tag">⭐ 추천도 ${r[2]} / 10</span>`:`<span class="tag">${esc(r[2])}</span><span class="tag">${esc(r[3])}</span>`}</div>
+  <p class="memo" style="margin-top:8px;font-size:1rem">${esc(spot?r[3]:r[4]||"")}</p>
+  ${btns(q)}
+ </div>
+ <div class="panel" id="about" hidden><h2 id="ah">소개</h2><p id="atext"></p><div class="credit" id="asrc"></div></div>
+ <div class="panel"><h2>${D[r[0]]} 일정</h2>${sameList}${others?`<h2 style="margin-top:14px">같은 날 ${spot?"명소":"맛집"}</h2><div class="btns">${others}</div>`:""}</div>
+ <div class="nav">${prev}${next}</div>`;
+ fetchInfo(w,c).then(info=>{
+  if(!info)return;
+  const im=new Image();im.alt=r[1];im.referrerPolicy="no-referrer";
+  im.onload=()=>{$("#hero span").style.display="none";$("#hero").prepend(im);
+   $("#credit").innerHTML=`사진: <a href="${info.url}" target="_blank" rel="noopener">${esc(info.src)}</a>${spot?"":" (대표 메뉴 참고 사진이며 해당 식당 사진이 아닙니다)"}`;};
+  im.src=info.img;
+  if(info.text){$("#about").hidden=false;if(!spot)$("#ah").textContent="대표 메뉴 소개";$("#atext").textContent=info.text+(spot?"":"");$("#asrc").innerHTML=`출처: <a href="${info.url}" target="_blank" rel="noopener">${esc(info.src)}</a> (CC BY-SA)`;}
+ });
+}
+</script>
+</body>
+</html>
