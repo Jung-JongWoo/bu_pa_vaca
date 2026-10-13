@@ -92,3 +92,15 @@ html{-webkit-text-size-adjust:100%}
 .ed.hl{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri2)}
 @media(max-width:600px){.edit-link{margin-left:auto;align-self:flex-end}}
 .io{margin-top:12px}.io[hidden]{display:none}.io button{cursor:pointer;font-family:inherit;min-height:38px}
+
+/* 모드 표시 / 탭 스크롤 / 후보 찾기 */
+[hidden]{display:none!important}
+header .wrap{position:relative}
+.who{position:absolute;right:16px;top:-6px;font-size:.78rem;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:99px}
+.who a{color:#fff;font-weight:700}
+.tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{flex:1 0 auto;white-space:nowrap}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);padding:16px;max-width:92vw;width:340px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+button.add{border:1px solid var(--pri)}
+@media(max-width:600px){.who{right:12px;top:-4px}}

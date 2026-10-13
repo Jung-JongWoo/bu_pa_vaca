@@ -30,7 +30,7 @@ else{
  <div class="hero" id="hero" style="background-image:linear-gradient(135deg,${GRAD[i%GRAD.length]})"><span>${emo}</span></div>
  <div class="credit" id="credit"></div>
  <div class="panel"><h1 style="margin:0 0 4px;font-size:1.4rem">${esc(r[1])}</h1>
-  <div class="kv"><span class="tag">${D[r[0]]}</span>${spot?`<span class="tag">⭐ 추천도 ${r[2]} / 10</span>`:`<span class="tag">${esc(r[2])}</span><span class="tag">${esc(r[3])}</span>`}</div>
+  <div class="kv"><span class="tag">${D[r[0]]}</span>${spot?(r[2]?`<span class="tag">⭐ 추천도 ${r[2]} / 10</span>`:""):`<span class="tag">${esc(r[2])}</span><span class="tag">${esc(r[3])}</span>`}</div>
   <p class="memo" style="margin-top:8px;font-size:1rem">${esc(spot?r[3]:r[4]||"")}</p>
   ${btns(q)}
  </div>

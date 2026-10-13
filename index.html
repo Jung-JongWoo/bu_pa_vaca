@@ -15,7 +15,8 @@
    <button class="tab" data-t="plan">📅 전체 일정</button>
    <button class="tab" data-t="spot">🏞️ 명소</button>
    <button class="tab" data-t="food">🍲 맛집</button>
-   <a class="tab" href="planner.html">✏️ 일정 짜기</a>
+   <a class="tab" href="explore.html">🔎 후보 찾기</a>
+   <a class="tab" href="planner.html" id="tplan">✏️ 일정 짜기</a>
   </div>
   <div class="tools">
    <input type="search" id="q" placeholder="검색 (장소, 메뉴, 지역, 메모)">
@@ -29,6 +30,7 @@
 <script src="data.js"></script>
 <script src="common.js"></script>
 <script>
+if(!canEdit()){$("#tplan").hidden=true;$("#imp").hidden=true;}
 const h0=new URLSearchParams(location.hash.slice(1));
 const st={t:h0.get("t")||"plan",day:h0.get("d")||"전체",q:""};
 const hit=a=>st.q===""||a.join(" ").toLowerCase().includes(st.q);
@@ -51,7 +53,7 @@ function render(){
     n++;
     let more="";
     if(r[6]){const[t,i]=r[6].split(":");more=`<a class="b pri" href="${detailUrl(t,i)}">상세 보기 →</a>`;}
-    h+=`<div class="row"><div class="time">${esc(r[1])}</div><div class="main">${r[3]?`<span class="tag">${esc(r[3])}</span>`:""}<b>${esc(r[2])}</b>${r[4]?`<div class="memo">${esc(r[4])}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div><a class="b edit-link" href="planner.html#edit=${pi}" aria-label="이 일정 바꾸기">✏️ 바꾸기</a></div>`;
+    h+=`<div class="row"><div class="time">${esc(r[1])}</div><div class="main">${r[3]?`<span class="tag">${esc(r[3])}</span>`:""}<b>${esc(r[2])}</b>${r[4]?`<div class="memo">${esc(r[4])}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div>${canEdit()?`<a class="b edit-link" href="planner.html#edit=${pi}" aria-label="이 일정 바꾸기">✏️ 바꾸기</a>`:""}</div>`;
    });
   });
   $("#out").innerHTML=n?h:'<div class="empty">검색 결과가 없습니다.</div>';
@@ -61,7 +63,7 @@ function render(){
  const f=LIST[st.t].map((r,i)=>({r,i})).filter(({r})=>dayOk(r[0])&&hit(r.slice(0,5)));
  $("#out").innerHTML=f.length?'<div class="grid">'+f.map(({r,i},k)=>{
   const emo=spot?r[4]:r[5];
-  const sub=spot?`<span class="score">⭐ ${r[2]}</span>`:`<span class="score" style="font-size:.85rem;color:var(--sub)">${esc(r[2])}</span>`;
+  const sub=spot?`<span class="score">${r[2]?"⭐ "+r[2]:""}</span>`:`<span class="score" style="font-size:.85rem;color:var(--sub)">${esc(r[2])}</span>`;
   const memo=spot?r[3]:[r[3],r[4]].filter(Boolean).join(" · ");
   return `<div class="card"><a class="go" href="${detailUrl(st.t,i)}"><div class="thumb" data-i="${i}" style="background-image:linear-gradient(135deg,${GRAD[k%GRAD.length]})"><span>${emo}</span><span class="d">${D[r[0]]}</span></div><div class="cb"><h3>${esc(r[1])}${sub}</h3><div class="memo">${esc(memo)}</div></div></a>${btns(spot?r[5]:"부산 "+r[6])}</div>`;
  }).join("")+"</div>":'<div class="empty">검색 결과가 없습니다.</div>';

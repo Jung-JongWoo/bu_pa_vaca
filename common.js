@@ -17,6 +17,8 @@ const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(e){return false;}};
 const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
 const getToken=()=>lsGet(LS.tok)||"";
+// 편집 모드 = 이 브라우저에 토큰이 저장돼 있음. (저장소에 실제로 쓸 수 있는 힘은 토큰뿐이라 화면 잠금은 편의용)
+const canEdit=()=>!!getToken();
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/\s/g,""))));
 const b64e=s=>btoa(unescape(encodeURIComponent(s)));
 const apiUrl=k=>`https://api.github.com/repos/${REPO.owner}/${REPO.repo}/contents/${FILES[k]}`;
@@ -34,14 +36,14 @@ async function readRemote(k){
 const READY=(async()=>{
  for(const k of ["plan","custom"]){
   let v=null;
-  if(lsGet(LS.dirty(k))){try{v=JSON.parse(lsGet(LS[k]));}catch(e){}}
+  if(canEdit()&&lsGet(LS.dirty(k))){try{v=JSON.parse(lsGet(LS[k]));}catch(e){}}
   if(!v)v=await readRemote(k);
   if(k==="plan")PLAN_STATE=Array.isArray(v)?v:PLAN.map(r=>r.slice());
   else if(v&&Array.isArray(v.spot)&&Array.isArray(v.food))CUSTOM=v;
  }
  SPOT.push(...CUSTOM.spot);FOOD.push(...CUSTOM.food);
 })();
-function saveCustom(){lsSet(LS.custom,JSON.stringify(CUSTOM));return lsSet(LS.dirty("custom"),"1");}
+function saveCustom(){if(!canEdit())return false;lsSet(LS.custom,JSON.stringify(CUSTOM));return lsSet(LS.dirty("custom"),"1");}
 async function pushAll(){
  const t=getToken();if(!t)return{ok:false,msg:"먼저 🔑 토큰을 입력하세요."};
  const H={Authorization:"Bearer "+t,Accept:"application/vnd.github+json"};
@@ -91,7 +93,7 @@ const wikiOf=(t,r)=>t==="spot"?[r[6],r[7]]:[r[7],r[8]];
 // 일정: [요일,시간,일정,지역,메모,지도검색어,상세참조] — READY 이후 사용
 const DAYS=["월","화","수","목"];
 const loadPlan=()=>PLAN_STATE;
-function savePlan(a){PLAN_STATE=a;lsSet(LS.plan,JSON.stringify(a));return lsSet(LS.dirty("plan"),"1");}
+function savePlan(a){if(!canEdit())return false;PLAN_STATE=a;lsSet(LS.plan,JSON.stringify(a));return lsSet(LS.dirty("plan"),"1");}
 const isDirty=()=>!!(lsGet(LS.dirty("plan"))||lsGet(LS.dirty("custom")));
 function resetPlan(){savePlan(PLAN.map(r=>r.slice()));}
 
@@ -106,6 +108,7 @@ function exportData(){
 }
 // 형식 검증 후 이 기기에 임시 저장(= 화면에 반영). 공유 저장은 planner의 💾 저장으로.
 async function importData(file){
+ if(!canEdit())return{ok:false,msg:"편집 모드(토큰 저장)에서만 불러올 수 있어요."};
  let j;
  try{j=JSON.parse(await file.text());}catch(e){return{ok:false,msg:"JSON 파일이 아니에요."};}
  if(!j||j.app!=="bu_pa_vaca"||!Array.isArray(j.plan))return{ok:false,msg:"이 사이트에서 내보낸 일정 파일이 아니에요."};
@@ -146,3 +149,36 @@ function pickEnvFile(done){
  i.onchange=async()=>{const f=i.files[0];if(!f)return;const r=await tokenFromEnvFile(f);alert(r.msg);done&&done(r);};
  i.click();
 }
+
+// 토큰 확인(읽기 전용 요청): 저장소 접근 가능 여부만 본다. 쓰기 권한은 실제 저장 때 안내된다.
+async function checkToken(t){
+ try{
+  const r=await fetch(`https://api.github.com/repos/${REPO.owner}/${REPO.repo}`,{headers:{Authorization:"Bearer "+t,Accept:"application/vnd.github+json"},cache:"no-store"});
+  if(r.ok)return{ok:true};
+  if(r.status===401)return{ok:false,msg:"유효하지 않은 토큰이에요."};
+  return{ok:false,msg:"이 저장소에 접근할 수 없는 토큰이에요. ("+r.status+")"};
+ }catch(e){return{ok:false,msg:"네트워크 오류로 토큰을 확인하지 못했어요."};}
+}
+const saveTokenLocal=t=>lsSet(LS.tok,t.trim());
+const clearTokenLocal=()=>lsDel(LS.tok);
+
+// 후보 장소를 내 명소/맛집 + 일정으로 담기 (it: {n,r,c,d,q})
+function addToPlan(type,it,day,time){
+ if(!canEdit())return false;
+ let idx=LIST[type].findIndex((r,k)=>k>=BASE[type]&&r[1]===it.n);
+ if(idx<0){
+  const row=type==="spot"?[day,it.n,0,it.d,"📍",it.q,"",""]:[day,it.n,it.c,it.r,it.d,"🍽️",it.q,"",""];
+  CUSTOM[type].push(row);LIST[type].push(row);idx=LIST[type].length-1;saveCustom();
+ }
+ const food=type==="food";
+ PLAN_STATE.push([day,time||"09:00",food?"식사: "+it.n:it.n,food?it.r:"",it.d,food?"부산 "+it.q:it.q,type+":"+idx]);
+ return savePlan(PLAN_STATE);
+}
+
+// 헤더 우측 모드 표시
+document.addEventListener("DOMContentLoaded",()=>{
+ const h=document.querySelector("header .wrap");if(!h)return;
+ const d=document.createElement("div");d.className="who";
+ d.innerHTML=canEdit()?'✏️ 편집 모드 · <a href="login.html">설정</a>':'👀 보기 전용 · <a href="login.html">편집 모드</a>';
+ h.appendChild(d);
+});

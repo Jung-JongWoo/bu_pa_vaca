@@ -48,6 +48,7 @@
 <script src="common.js"></script>
 <script>
 READY.then(()=>{
+if(!canEdit()){location.replace("login.html?next=planner.html");return;}
 let plan=loadPlan();
 const byDay=()=>plan.sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0])); // 안정 정렬
 function status(msg,ok){const s=$("#saved");s.textContent=msg;s.style.color=ok?"var(--green)":"#e8590c";}

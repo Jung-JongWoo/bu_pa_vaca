@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6fb8">
+<title>후보 찾기 · 부산 부모님 여행</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap"><a href="index.html"><h1>🌊 부모님과 부산 3박4일</h1></a><p>명소·맛집 후보 찾기 · 마음에 들면 일정에 담아요</p></div></header>
+<div class="wrap">
+ <div class="bar">
+  <div class="tabs" id="tabs">
+   <button class="tab on" data-t="spot">🏞️ 명소 <span id="ns"></span></button>
+   <button class="tab" data-t="food">🍲 맛집 <span id="nf"></span></button>
+   <a class="tab" href="index.html">← 일정으로</a>
+  </div>
+  <div class="tools">
+   <input type="search" id="q" placeholder="검색 (이름, 지역, 분류, 설명)">
+  </div>
+  <div class="chips" id="regions" style="margin-top:8px;max-height:96px;overflow:auto"></div>
+ </div>
+ <p class="note" style="margin-top:12px">※ 대표적인 후보를 모은 목록이에요. 영업시간·휴무·폐업 여부는 방문 전 네이버지도로 꼭 확인하세요.</p>
+ <div id="cnt" class="memo" style="margin-top:8px"></div>
+ <main id="out"></main>
+</div>
+<dialog id="dlg">
+ <form method="dialog" id="df">
+  <h3 id="dt" style="margin:0 0 8px"></h3>
+  <div class="frm"><select id="dday"></select><input type="time" id="dtime" value="12:00"></div>
+  <div class="btns" style="margin-top:12px"><button class="b pri" value="ok" style="min-height:40px;cursor:pointer">일정에 담기</button><button class="b" value="cancel" style="min-height:40px;cursor:pointer">취소</button></div>
+ </form>
+</dialog>
+<footer>사진 없이 가볍게 보는 목록이에요. 이미지는 각 장소의 🖼️ 버튼으로 확인하세요.</footer>
+<script src="data.js"></script>
+<script src="places.js"></script>
+<script src="common.js"></script>
+<script>
+const st={t:"spot",region:"전체",q:""};
+const EMO=[[/해변|해수욕장/,"🏖️"],[/야경/,"🌃"],[/사찰/,"⛩️"],[/시장|야시장/,"🛍️"],[/산책|숲|공원|트레킹/,"🌲"],[/전망/,"🔭"],[/박물관|미술관|문화|역사/,"🏛️"],[/마을|골목|거리/,"🏘️"],[/체험|테마/,"🎡"],
+ [/국밥|국수|밀면|냉면/,"🍜"],[/회|해산물|조개|장어|곰장어|멸치|죽/,"🐟"],[/갈비|불고기|족발|삼계탕/,"🥩"],[/어묵|호떡|김밥|떡볶이|분식|파전/,"🍢"],[/빵|과자/,"🥐"],[/카페|커피/,"☕"]];
+const emo=(c,t)=>(EMO.find(([re])=>re.test(c))||[0,t==="spot"?"📍":"🍽️"])[1];
+let pending=null;
+function items(){const L=PLACES[st.t];return L.map(r=>({n:r[0],r:r[1],c:r[2],d:r[3],q:r[4]}));}
+function render(){
+ [...$("#tabs").children].forEach(c=>c.dataset.t&&c.classList.toggle("on",c.dataset.t===st.t));
+ const all=items();
+ const regs=["전체",...[...new Set(all.map(x=>x.r))]];
+ if(!regs.includes(st.region))st.region="전체";
+ $("#regions").innerHTML=regs.map(x=>`<button class="chip${x===st.region?" on":""}" data-r="${esc(x)}">${esc(x)}</button>`).join("");
+ const f=all.filter(x=>(st.region==="전체"||x.r===st.region)&&(st.q===""||[x.n,x.r,x.c,x.d].join(" ").toLowerCase().includes(st.q)));
+ $("#cnt").textContent=`${f.length}곳`;
+ const edit=canEdit();
+ $("#out").innerHTML=f.length?'<div class="grid">'+f.map((x,i)=>{
+  const key=all.indexOf(x);
+  const mq=st.t==="food"?"부산 "+x.q:x.q;
+  return `<div class="card"><div class="cb"><h3>${emo(x.c,st.t)} ${esc(x.n)}</h3><div class="kv"><span class="tag">${esc(x.r)}</span><span class="tag">${esc(x.c)}</span></div><div class="memo" style="margin-top:6px">${esc(x.d)}</div></div>${btns(mq).replace("</div>",edit?`<button class="b pri add" data-k="${key}" style="cursor:pointer;font-family:inherit">＋ 일정에 담기</button></div>`:"</div>")}</div>`;
+ }).join("")+"</div>":'<div class="empty">검색 결과가 없습니다.</div>';
+}
+$("#tabs").onclick=e=>{const t=e.target.dataset.t;if(t){st.t=t;st.region="전체";render();}};
+$("#regions").onclick=e=>{const r=e.target.dataset.r;if(r){st.region=r;render();}};
+$("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render();};
+$("#dday").innerHTML=DAYS.map(d=>`<option>${d}</option>`).join("");
+$("#out").onclick=e=>{
+ const b=e.target.closest(".add");if(!b)return;
+ pending=items()[+b.dataset.k];$("#dt").textContent=pending.n;$("#dlg").showModal();
+};
+$("#df").onsubmit=e=>{
+ if(e.submitter&&e.submitter.value!=="ok")return;
+ const ok=addToPlan(st.t,pending,$("#dday").value,$("#dtime").value);
+ setTimeout(()=>alert(ok?`${pending.n} 을(를) ${$("#dday").value}요일 일정에 담았어요.\n일정 짜기에서 💾 저장을 누르면 공유돼요.`:"담지 못했어요. 편집 모드인지 확인하세요."),50);
+};
+$("#ns").textContent=PLACES.spot.length;$("#nf").textContent=PLACES.food.length;
+READY.then(render);
+</script>
+</body>
+</html>
