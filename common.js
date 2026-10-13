@@ -32,3 +32,10 @@ async function fetchInfo(wiki,commons){
  return info;
 }
 const wikiOf=(t,r)=>t==="spot"?[r[6],r[7]]:[r[7],r[8]];
+
+// 내 일정 (localStorage). 형식은 PLAN과 동일: [요일,시간,일정,지역,메모,지도검색어,상세참조]
+const PKEY="bupa.plan.v1",DAYS=["월","화","수","목"];
+function loadPlan(){try{const a=JSON.parse(localStorage.getItem(PKEY));if(Array.isArray(a))return a;}catch(e){}return PLAN.map(r=>r.slice());}
+function savePlan(a){try{localStorage.setItem(PKEY,JSON.stringify(a));return true;}catch(e){return false;}}
+function isCustom(){try{return !!localStorage.getItem(PKEY);}catch(e){return false;}}
+function resetPlan(){try{localStorage.removeItem(PKEY);}catch(e){}}

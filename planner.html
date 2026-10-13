@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6fb8">
+<title>일정 짜기 · 부산 부모님 여행</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap"><a href="index.html"><h1>🌊 부모님과 부산 3박4일</h1></a><p>일정 다시 짜기 · 수정 내용은 이 기기의 브라우저에 자동 저장돼요</p></div></header>
+<div class="wrap">
+ <div class="bar">
+  <div class="tools" style="margin:0">
+   <a class="b pri" href="index.html">← 일정 보기</a>
+   <button class="b" id="sort">⏱ 시간순 정렬</button>
+   <button class="b" id="reset">↺ 원래대로</button>
+   <span class="saved" id="saved"></span>
+  </div>
+ </div>
+ <main id="out"></main>
+</div>
+<footer>※ 저장은 이 브라우저(localStorage)에만 되며, 다른 기기와는 공유되지 않아요.</footer>
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>
+let plan=loadPlan();
+const byDay=()=>plan.sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0])); // 안정 정렬
+let tm;
+function save(){savePlan(plan);const s=$("#saved");s.textContent="✔ 저장됨";clearTimeout(tm);tm=setTimeout(()=>s.textContent="",1500);}
+const opts=()=>'<option value="">＋ 명소/맛집에서 추가…</option><optgroup label="명소">'+SPOT.map((r,i)=>`<option value="spot:${i}">${esc(r[1])}</option>`).join("")+'</optgroup><optgroup label="맛집">'+FOOD.map((r,i)=>`<option value="food:${i}">${esc(r[1])}</option>`).join("")+'</optgroup>';
+function render(){
+ byDay();
+ $("#out").innerHTML=DAYS.map(d=>{
+  const rows=plan.map((r,i)=>({r,i})).filter(x=>x.r[0]===d);
+  return `<h2 class="day">${D[d]}</h2>`+rows.map(({r,i},k)=>`
+  <div class="ed" data-i="${i}">
+   <div class="ed-top"><input type="time" data-f="1" value="${esc(r[1])}"><input type="text" class="grow" data-f="2" value="${esc(r[2])}" placeholder="일정"></div>
+   <input type="text" data-f="4" value="${esc(r[4])}" placeholder="메모 (선택)">
+   <div class="ed-act">
+    <button class="b" data-a="up" ${k===0?"disabled":""} aria-label="위로">↑</button>
+    <button class="b" data-a="down" ${k===rows.length-1?"disabled":""} aria-label="아래로">↓</button>
+    <select data-a="day" aria-label="요일 변경">${DAYS.map(x=>`<option${x===d?" selected":""}>${x}</option>`).join("")}</select>
+    ${r[6]?`<a class="b" href="${detailUrl(...r[6].split(":"))}">상세</a>`:""}
+    <button class="b del" data-a="del" aria-label="삭제">✕ 삭제</button>
+   </div>
+  </div>`).join("")+`<div class="ed-add"><button class="b pri" data-add="${d}">＋ 직접 추가</button><select data-addsel="${d}">${opts()}</select></div>`;
+ }).join("");
+}
+$("#out").addEventListener("input",e=>{
+ const el=e.target,box=el.closest(".ed");if(!box||!el.dataset.f)return;
+ plan[+box.dataset.i][+el.dataset.f]=el.value;save();
+});
+$("#out").addEventListener("click",e=>{
+ const el=e.target.closest("button");if(!el)return;
+ if(el.dataset.add){plan.push([el.dataset.add,"09:00","새 일정","","","",""]);save();render();const last=plan.map((r,i)=>i).filter(i=>plan[i][0]===el.dataset.add).pop();document.querySelector(`.ed[data-i="${last}"] input[data-f="2"]`)?.select();return;}
+ const box=el.closest(".ed");if(!box)return;
+ const i=+box.dataset.i,a=el.dataset.a;
+ if(a==="del"){if(confirm("이 일정을 삭제할까요?")){plan.splice(i,1);save();render();}return;}
+ if(a==="up"||a==="down"){
+  let j=i+(a==="up"?-1:1);
+  while(plan[j]&&plan[j][0]!==plan[i][0])j+=(a==="up"?-1:1);
+  if(plan[j]){[plan[i],plan[j]]=[plan[j],plan[i]];save();render();}
+ }
+});
+$("#out").addEventListener("change",e=>{
+ const el=e.target;
+ if(el.dataset.a==="day"){plan[+el.closest(".ed").dataset.i][0]=el.value;save();render();}
+ if(el.dataset.addsel&&el.value){
+  const[t,k]=el.value.split(":"),r=LIST[t][+k],spot=t==="spot";
+  plan.push([el.dataset.addsel,"09:00",spot?r[1]:"식사: "+r[1],spot?"":r[3],spot?r[3]:r[4],spot?r[5]:"부산 "+r[6],el.value]);
+  save();render();
+ }
+});
+$("#sort").onclick=()=>{plan.sort((a,b)=>DAYS.indexOf(a[0])-DAYS.indexOf(b[0])||String(a[1]).localeCompare(String(b[1])));save();render();};
+$("#reset").onclick=()=>{if(confirm("수정한 내용을 모두 지우고 원래 일정으로 되돌릴까요?")){resetPlan();plan=loadPlan();render();}};
+render();
+</script>
+</body>
+</html>

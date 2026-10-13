@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b6fb8">
 <title>부산 부모님 여행 3박4일</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -14,6 +15,7 @@
    <button class="tab" data-t="plan">📅 전체 일정</button>
    <button class="tab" data-t="spot">🏞️ 명소</button>
    <button class="tab" data-t="food">🍲 맛집</button>
+   <a class="tab" href="planner.html">✏️ 일정 짜기</a>
   </div>
   <div class="tools">
    <input type="search" id="q" placeholder="검색 (장소, 메뉴, 지역, 메모)">
@@ -37,13 +39,18 @@ function render(){
  [...$("#days").children].forEach(c=>c.classList.toggle("on",c.dataset.d===st.day));
  let h="";
  if(st.t==="plan"){
-  let last="",n=0;
-  PLAN.filter(r=>dayOk(r[0])&&hit(r.slice(0,5))).forEach(r=>{
-   n++;
-   if(r[0]!==last){h+=`<h2 class="day">${D[r[0]]}</h2>`;last=r[0];}
-   let more="";
-   if(r[6]){const[t,i]=r[6].split(":");more=`<a class="b pri" href="${detailUrl(t,i)}">상세 보기 →</a>`;}
-   h+=`<div class="row"><div class="time">${r[1]}</div><div class="main">${r[3]?`<span class="tag">${r[3]}</span>`:""}<b>${r[2]}</b>${r[4]?`<div class="memo">${r[4]}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div></div>`;
+  const plan=loadPlan();let n=0;
+  if(isCustom())h+='<div class="note">✏️ 내가 수정한 일정을 보고 있어요. <a href="planner.html">계속 편집</a></div>';
+  DAYS.filter(dayOk).forEach(d=>{
+   const rows=plan.filter(r=>r[0]===d&&hit(r.slice(0,5)));
+   if(!rows.length)return;
+   h+=`<h2 class="day">${D[d]}</h2>`;
+   rows.forEach(r=>{
+    n++;
+    let more="";
+    if(r[6]){const[t,i]=r[6].split(":");more=`<a class="b pri" href="${detailUrl(t,i)}">상세 보기 →</a>`;}
+    h+=`<div class="row"><div class="time">${esc(r[1])}</div><div class="main">${r[3]?`<span class="tag">${esc(r[3])}</span>`:""}<b>${esc(r[2])}</b>${r[4]?`<div class="memo">${esc(r[4])}</div>`:""}${r[5]?btns(r[5]).replace("</div>",more+"</div>"):""}</div></div>`;
+   });
   });
   $("#out").innerHTML=n?h:'<div class="empty">검색 결과가 없습니다.</div>';
   return;

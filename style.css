@@ -48,3 +48,40 @@ footer{color:var(--sub);font-size:.8rem;text-align:center;padding:28px 16px}
 .nav{display:flex;justify-content:space-between;gap:8px;margin:16px 0}
 .back{display:inline-block;margin-top:14px;text-decoration:none;color:var(--pri);font-weight:700}
 @media(max-width:600px){.hero{height:220px}}
+
+/* 일정 짜기 / 안내 */
+.note{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--pri2);color:var(--pri);font-size:.9rem}
+.note a{font-weight:700}
+a.tab{display:block;text-align:center;text-decoration:none}
+.tools button.b,.ed button.b,.ed-add button.b{cursor:pointer;font-family:inherit}
+.saved{color:var(--green);font-size:.85rem;align-self:center}
+.ed{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+.ed-top{display:flex;gap:6px}
+.ed input,.ed select,.ed-add select{padding:9px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:1rem;font-family:inherit;min-width:0}
+.ed input[type=text]{width:100%}.grow{flex:1}
+.ed-act{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ed-act .b,.ed-add .b{min-height:38px;display:inline-flex;align-items:center}
+.ed-act button:disabled{opacity:.35}
+.b.del{margin-left:auto;color:#e03131}
+.ed-add{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.ed-add select{flex:1;min-width:160px}
+
+/* 모바일 */
+html{-webkit-text-size-adjust:100%}
+@media(max-width:600px){
+ header{padding:16px 12px 12px}header h1{font-size:1.15rem}header p{font-size:.8rem}
+ .wrap{padding:0 12px}
+ .bar{padding:8px 0 6px}
+ .tab{padding:9px 2px;font-size:.88rem;white-space:nowrap}
+ .tools{gap:6px}input[type=search]{font-size:16px;min-width:0;width:100%;flex:none}
+ .chips{width:100%}.chip{flex:1;padding:8px 0;text-align:center}
+ .row{padding:10px;gap:6px}.time{min-width:0;width:100%}
+ .main{min-width:0;width:100%}
+ a.b{padding:8px 11px;font-size:.85rem}
+ .grid{grid-template-columns:1fr}
+ .thumb{height:180px}
+ .panel{padding:14px}
+ .nav{flex-direction:column}.nav .b{text-align:center}
+ .ed input,.ed select{font-size:16px}
+ footer{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+}
