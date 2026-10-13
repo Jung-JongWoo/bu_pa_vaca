@@ -6,12 +6,19 @@ const GRAD=["#2bb3c0,#0b6fb8","#f6a35c,#e8590c","#7ad07a,#2f9e44","#b197fc,#6741
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const btns=q=>`<div class="btns"><a class="b map" target="_blank" rel="noopener" href="${mapUrl(q)}">📍 네이버지도</a><a class="b" target="_blank" rel="noopener" href="${imgUrl(q)}">🖼️ 이미지</a><a class="b" target="_blank" rel="noopener" href="${blogUrl(q)}">📝 후기</a></div>`;
+// 내가 추가한 명소/맛집 (localStorage) — 기본 목록 뒤에 붙여서 기존 번호는 그대로 유지
+const CKEY="bupa.custom.v1",BASE={spot:SPOT.length,food:FOOD.length};
+let CUSTOM={spot:[],food:[]};
+try{const c=JSON.parse(localStorage.getItem(CKEY));if(c&&Array.isArray(c.spot)&&Array.isArray(c.food))CUSTOM=c;}catch(e){}
+SPOT.push(...CUSTOM.spot);FOOD.push(...CUSTOM.food);
+function saveCustom(){try{localStorage.setItem(CKEY,JSON.stringify(CUSTOM));return true;}catch(e){return false;}}
 const LIST={spot:SPOT,food:FOOD};
 const detailUrl=(t,i)=>`detail.html?t=${t}&i=${i}`;
 
 // 사진/소개: 위키백과 → 위키미디어 커먼즈 순으로 검색, localStorage 캐시
 async function getJSON(u){const r=await fetch(u);if(!r.ok)throw 0;return r.json();}
 async function fetchInfo(wiki,commons){
+ if(!wiki&&!commons)return null;
  const key="pv1:"+wiki+"|"+commons;
  try{const c=localStorage.getItem(key);if(c)return JSON.parse(c);}catch(e){}
  let info=null;
